@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIMORA STREAM</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background:#f8f9fa; }
+        .sidebar {
+            height: 100vh; background: #212529; color: #fff;
+            padding: 10px 0;
+            position: fixed; top: 0; left: 0;
+            width: 250px; /* Atur lebar awal ke 250px */
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            overflow-x: hidden;
+            align-items: center;
+        }
+        
+        .sidebar.folded {
+            width: 60px;
+        }
+        
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 0 10px;
+            width: 100%;
+        }
+
+        .sidebar.folded .sidebar-header {
+ 	/* justify-content: center; */
+        }
+
+        .sidebar a, .offcanvas-body a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin: 5px 10px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: all 0.3s ease; /* Transisi untuk semua elemen di dalamnya */
+        }
+        .sidebar a:hover, .sidebar a.active, .offcanvas-body a:hover { background: #0d6efd; color: #fff; }
+        .sidebar-brand {
+            margin-left: 10px;
+            font-size: 1.25rem;
+            flex-grow: 1;
+        }
+     	.sidebar-brand {
+    	white-space: nowrap;  /* cegah teks pecah ke baris baru */
+	}
+        .sidebar.folded .sidebar-brand,
+        .sidebar.folded a span {
+            opacity: 0;
+            width: 0;
+            padding-left: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar.folded a i {
+            margin-right: -10px;
+        }
+        
+        .content {
+            margin-left: 260px; /* Sesuaikan margin konten dengan lebar sidebar yang diperluas */
+            padding:20px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        body.sidebar-folded .content {
+            margin-left: 70px;
+        }
+
+        @media (max-width: 992px) {
+            .content { margin-left: 0; padding-top: 70px; }
+            .sidebar { display: none; }
+            .mobile-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 20px;
+                background-color: #fff;
+                border-bottom: 1px solid #e9ecef;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+            }
+            .mobile-header .me-auto {
+                text-align: center;
+                flex-grow: 1;
+            }
+        }
+        .remove-btn { cursor:pointer; color:red; font-weight:bold; margin-left:10px; }
+        #playlistVideos li, #playlistAudios li { cursor:move; }
+        .login-page { height:100vh; display:flex; align-items:center; justify-content:center; }
+        .loading { text-align:center; padding:20px; color:#6c757d; }
+    </style>
+</head>
+<body>
+
+  <div id="loginPage" class="login-page">
+    <div class="card p-4 shadow-sm" style="max-width:400px;width:100%">
+      <h4 class="mb-3 text-center">🔑 Login PIMORA</h4>
+      <form id="loginForm">
+        <div class="mb-3"><input type="text" id="username" class="form-control" placeholder="Username" required></div>
+        <div class="mb-3"><input type="password" id="password" class="form-control" placeholder="Password" required></div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="app" class="d-none">
+    <div class="mobile-header d-lg-none">
+        <button class="btn btn-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarMenu" aria-controls="sidebarMenu"><i class="bi bi-list"></i></button>
+        <h5 class="me-auto">PIMORA STREAM</h5>
+    </div>
+
+    <div class="sidebar d-none d-lg-block">
+        <div class="sidebar-header">
+            <button id="toggleSidebarBtn" class="btn btn-dark" aria-label="Toggle Sidebar"><i class="bi bi-list"></i></button>
+            <h4 class="sidebar-brand">PIMORA STREAM</h4>
+        </div>
+        <a href="#" class="active" onclick="showSection('dashboard', event)" title="Dashboard" aria-label="Dashboard"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+        <a href="#" onclick="showSection('addStream', event)" title="Tambah Stream" aria-label="Tambah Stream"><i class="bi bi-plus-circle"></i><span>Add Stream</span></a>
+        <a href="#" onclick="showSection('addFolder', event)" title="Tambah Folder" aria-label="Tambah Folder"><i class="bi bi-folder-plus"></i><span>Add Folder</span></a>
+        <a href="#" onclick="showSection('gallery', event)" title="Galeri" aria-label="Galeri"><i class="bi bi-collection-play"></i><span>Galeri</span></a>
+        <a href="#" onclick="showSection('status', event)" title="Status Server" aria-label="Status Server"><i class="bi bi-activity"></i><span>Server Status</span></a>
+        <a href="#" onclick="showSection('profile', event)" title="Profil" aria-label="Profil"><i class="bi bi-person-circle"></i><span>Profil</span></a>
+        <a href="#" onclick="logout()" title="Logout" aria-label="Logout"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+    </div>
+
+    <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="sidebarMenu" aria-labelledby="sidebarMenuLabel" style="width: 250px;">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="sidebarMenuLabel">PIMORA STREAM</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Tutup"></button>
+        </div>
+        <div class="offcanvas-body">
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('dashboard', event)"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('addStream', event)"><i class="bi bi-plus-circle"></i><span>Add Stream</span></a>
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('addFolder', event)"><i class="bi bi-folder-plus"></i><span>Add Folder</span></a>
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('gallery', event)"><i class="bi bi-collection-play"></i><span>Galeri</span></a>
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('status', event)"><i class="bi bi-activity"></i><span>Server Status</span></a>
+            <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('profile', event)"><i class="bi bi-person-circle"></i><span>Profil</span></a>
+            <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i><span>Logout</span></a>
+        </div>
+    </div>
+    
+    <div class="content">
+      <div id="dashboard" class="content-section">
+        <div class="card p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="d-flex align-items-center"><i class="bi bi-speedometer2 me-2"></i> Dashboard</h5>
+            <select id="channelFilter" class="form-select w-auto">
+                <option value="">Semua Channel</option>
+            </select>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-striped mt-3">
+              <thead>
+                <tr>
+                  <th>Channel</th>
+                  <th>Nama Stream</th>
+                  <th>Platform</th>
+                  <th>Status</th>
+                  <th>Jadwal</th>
+                  <th>Durasi Live</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="streamList"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="editStreamModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Stream</h5>
+            <button class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editStreamId">
+            <div class="mb-3"><input type="text" id="editStreamName" class="form-control" placeholder="Nama Stream"></div>
+            <div class="mb-3"><input type="text" id="editChannel" class="form-control" placeholder="Channel"></div>
+            <div class="mb-3"><input type="text" id="editStreamURL" class="form-control" placeholder="RTMP URL"></div>
+            <div class="mb-3"><input type="text" id="editStreamKey" class="form-control" placeholder="Stream Key"></div>
+            <div class="mb-3"><input type="datetime-local" id="editSchedule" class="form-control"></div>
+            <div class="mb-3"><input type="number" id="editDuration" class="form-control" placeholder="Durasi (menit)"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-success" onclick="saveEditStream()">Simpan Perubahan</button>
+          </div>
+        </div></div>
+      </div>
+
+      <div id="addStream" class="content-section d-none">
+        <div class="card p-3">
+          <h5><i class="bi bi-plus-circle"></i> Add Stream</h5>
+          <form id="formStream" class="mt-3">
+            <div class="row mb-3">
+              <div class="col-md-6 mb-2"><input type="text" id="streamName" class="form-control" placeholder="Nama Stream" required></div>
+              <div class="col-md-6 mb-2">
+                <select id="platform" class="form-select" required>
+                  <option value="">Pilih Platform</option>
+                  <option>YouTube</option>
+                  <option>Facebook</option>
+                  <option>Twitch</option>
+                  <option>Custom RTMP</option>
+                </select>
+              </div>
+            </div>
+            <div class="mb-3"><input type="text" id="channel" class="form-control" placeholder="Channel"></div>
+            <div class="mb-3"><input type="text" id="rtmp" class="form-control" placeholder="RTMP URL" required></div>
+            <div class="mb-3"><input type="text" id="streamKey" class="form-control" placeholder="Stream Key" required></div>
+            <div class="row mb-3">
+              <div class="col-md-6 mb-2"><input type="datetime-local" id="schedule" class="form-control" required></div>
+              <div class="col-md-6 mb-2"><input type="number" id="duration" class="form-control" placeholder="Durasi (menit)"></div>
+            </div>
+            <div class="mb-3"><label>Pilih Folder</label><select id="folderSelect" class="form-select" required><option value="">Loading...</option></select></div>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Simpan</button>
+          </form>
+        </div>
+      </div>
+      
+      <div id="addFolder" class="content-section d-none">
+        <div class="card p-3">
+          <h5><i class="bi bi-folder-plus"></i> Add Folder</h5>
+          <form id="formFolder" class="mt-3">
+            <div class="mb-3"><input type="text" class="form-control" id="folderName" placeholder="Nama Folder" required></div>
+            
+            <div class="mb-3"><label>Tambah Video</label>
+              <ul id="newVideos" class="list-group"></ul>
+              <input type="file" id="newVideoInput" class="form-control mt-2" accept="video/*" multiple>
+            </div>
+            
+            <div class="mb-3"><label>Tambah Audio</label>
+              <ul id="newAudios" class="list-group"></ul>
+              <input type="file" id="newAudioInput" class="form-control mt-2" accept="audio/*" multiple>
+            </div>
+
+            <div class="progress mb-3 d-none"><div id="uploadProgressAdd" class="progress-bar" role="progressbar" style="width:0%">0%</div></div>
+
+            <div class="d-flex justify-content-end">
+              <button type="button" class="btn btn-primary me-2" onclick="uploadNewFolderFiles()">Upload File</button>
+              <button type="submit" class="btn btn-success">Simpan Folder</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="gallery" class="content-section d-none">
+        <div class="card p-3">
+          <h5>
+            <i class="bi bi-collection-play"></i> Galeri 
+            <button class="btn btn-sm btn-outline-secondary ms-2" onclick="loadGallery(true)">
+              <i class="bi bi-arrow-clockwise"></i> Refresh
+            </button>
+          </h5>
+          <div id="galleryList" class="row mt-3 loading">Loading...</div>
+        </div>
+      </div>
+
+      <div class="modal fade" id="previewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg"><div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">Preview Folder</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body" id="previewContent">Loading...</div>
+        </div></div>
+      </div>
+
+      <div class="modal fade" id="editFolderModal" tabindex="-1">
+        <div class="modal-dialog modal-xl"><div class="modal-content">
+          <div class="modal-header"><h5 class="modal-title">Edit Playlist</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+          <div class="modal-body">
+            <input type="hidden" id="oldFolderName">
+            <input class="form-control mb-3" id="editFolderNameInput">
+            <div class="row">
+              <div class="col-md-6">
+                <h6>🎬 Video (drag ↕️ atau tombol)</h6>
+                <ul id="playlistVideos" class="list-group"></ul>
+                <input type="file" id="addVideoInput" class="form-control mt-2" accept="video/*">
+              </div>
+              <div class="col-md-6">
+                <h6>🎵 Audio (drag ↕️ atau tombol)</h6>
+                <ul id="playlistAudios" class="list-group"></ul>
+                <input type="file" id="addAudioInput" class="form-control mt-2" accept="audio/*">
+              </div>
+            </div>
+            <div class="progress mt-3 d-none"><div id="uploadProgressEdit" class="progress-bar" role="progressbar" style="width:0%">0%</div></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary" onclick="uploadPendingFiles()">Upload File</button>
+            <button class="btn btn-success" onclick="savePlaylist()">Simpan</button>
+          </div>
+        </div></div>
+      </div>
+
+      <div id="status" class="content-section d-none">
+        <div class="card p-3">
+          <h5><i class="bi bi-activity"></i> Server Status</h5>
+          <div class="row mt-3">
+            <div class="col-md-4">
+              <div class="card p-3 mb-3 shadow-sm">
+                <h6>CPU</h6>
+                <div class="progress">
+                  <div id="cpuBar" class="progress-bar bg-primary" style="width:0%">0%</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card p-3 mb-3 shadow-sm">
+                <h6>Memory</h6>
+                <div class="progress">
+                  <div id="memBar" class="progress-bar bg-success" style="width:0%">0%</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card p-3 mb-3 shadow-sm">
+                <h6>Storage</h6>
+                <div class="progress">
+                  <div id="storageBar" class="progress-bar bg-warning" style="width:0%">0%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div id="statusContent" class="mt-3">Loading...</div>
+        </div>
+      </div>
+
+      <div id="profile" class="content-section d-none">
+        <div class="card p-3">
+          <h5><i class="bi bi-person-circle"></i> Profil</h5>
+          <form id="changeCredForm">
+            <div class="mb-3">
+              <input type="text" id="newUsername" class="form-control" placeholder="Username Baru (opsional)">
+            </div>
+
+            <div class="mb-3 input-group">
+              <input type="password" id="oldPass" class="form-control" placeholder="Password Lama" required>
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePass('oldPass', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+
+            <div class="mb-3 input-group">
+              <input type="password" id="newPass" class="form-control" placeholder="Password Baru (opsional)">
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePass('newPass', this)">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+
+            <button type="submit" class="btn btn-warning">Update Profil</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:11">
+    <div id="toast" class="toast align-items-center text-bg-success border-0">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMessage">✅ Berhasil</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<script>
+    // Queue global
+    let pendingFiles = [];
+    let newFolderFiles = [];
+    let allStreams = [];
+
+    // ================================================================
+    // Fungsi Sidebar & UI
+    // ================================================================
+    function closeMobileMenu() {
+        const offcanvas = bootstrap.Offcanvas.getInstance(document.getElementById("sidebarMenu"));
+        if (offcanvas) offcanvas.hide();
+    }
+    
+    const sidebar = document.querySelector(".sidebar");
+    
+    document.addEventListener("DOMContentLoaded", () => {
+        if (window.innerWidth >= 992) {
+            sidebar.classList.add("folded");
+            document.body.classList.add("sidebar-folded");
+        }
+    });
+
+    if (document.getElementById("toggleSidebarBtn")) {
+        document.getElementById("toggleSidebarBtn").addEventListener("click", () => {
+            sidebar.classList.toggle("folded");
+            document.body.classList.toggle("sidebar-folded");
+        });
+    }
+
+    // ===== Toast =====
+    function showToast(msg, success = true) {
+        const toastEl = document.getElementById("toast");
+        document.getElementById("toastMessage").innerText = msg;
+        toastEl.classList.toggle("text-bg-success", success);
+        toastEl.classList.toggle("text-bg-danger", !success);
+        new bootstrap.Toast(toastEl).show();
+    }
+
+    // ===== Toggle Password Visibility =====
+    function togglePass(id, btn) {
+        const input = document.getElementById(id);
+        const icon = btn.querySelector("i");
+        if (input.type === "password") { input.type = "text"; icon.classList.replace("bi-eye", "bi-eye-slash"); }
+        else { input.type = "password"; icon.classList.replace("bi-eye-slash", "bi-eye"); }
+    }
+
+    // ===== Auto-login =====
+    window.addEventListener("DOMContentLoaded", async () => {
+        try {
+            const r = await fetch("/me");
+            if (r.ok) { loginPage.classList.add("d-none"); app.classList.remove("d-none"); showSection("dashboard"); }
+        } catch { }
+    });
+
+    // ===== Login =====
+    loginForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        try {
+            const r = await fetch("/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: username.value, password: password.value }) });
+            if (r.ok) { loginPage.classList.add("d-none"); app.classList.remove("d-none"); showToast("✅ Login sukses"); showSection("dashboard"); }
+            else showToast("❌ Login gagal", false);
+        } catch { showToast("❌ Server error", false); }
+    });
+
+    // ===== Logout =====
+    async function logout() { if (!confirm("Yakin mau logout?")) return; await fetch("/logout", { method: "POST" }); location.reload(); }
+
+    // ===== Switch Section =====
+    function showSection(id, e) {
+        document.querySelectorAll(".content-section").forEach(s => s.classList.add("d-none"));
+        document.getElementById(id).classList.remove("d-none");
+        
+        document.querySelectorAll(".sidebar a, .offcanvas-body a").forEach(a => a.classList.remove("active"));
+        
+        const desktopLink = document.querySelector(`.sidebar a[onclick*="${id}"]`);
+        if (desktopLink) desktopLink.classList.add("active");
+        
+        const mobileLink = document.querySelector(`.offcanvas-body a[onclick*="${id}"]`);
+        if (mobileLink) mobileLink.classList.add("active");
+
+        if (id === "dashboard") loadStreams();
+        if (id === "addStream") loadFolders();
+        if (id === "gallery") loadGallery();
+        if (id === "status") loadStatus();
+    }
+
+    // ===== Timer =====
+    function updateTimers() { document.querySelectorAll("[data-start]").forEach(el => { const start = new Date(el.dataset.start); const diff = Math.floor((Date.now() - start.getTime()) / 1000); const h = Math.floor(diff / 3600); const m = Math.floor((diff % 3600) / 60); const s = diff % 60; el.innerText = `${h.toString().padStart(2, '0')}j ${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`; }); }
+    setInterval(updateTimers, 1000);
+
+    // ===== Streams
+    async function loadStreams() {
+        const streamList = document.getElementById("streamList");
+        streamList.innerHTML = `<tr><td colspan="7" class="loading">Loading...</td></tr>`;
+        try {
+            const r = await fetch("/streams");
+            if (r.status === 401) return logout();
+            const s = await r.json();
+            allStreams = s.sort((a, b) => a.name.localeCompare(b.name));
+            renderStreams();
+            updateChannelFilter();
+        } catch {
+            showToast("❌ Gagal load stream", false);
+        }
+    }
+    
+    function formatDuration(seconds) {
+        if (!seconds || seconds <= 0) return "00:00:00";
+        const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+        const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    function renderStreams() {
+        const streamList = document.getElementById("streamList");
+        const filter = document.getElementById("channelFilter").value;
+        streamList.innerHTML = "";
+        
+        const data = filter ? allStreams.filter(x => x.channel === filter) : allStreams;
+
+        if (data.length === 0) {
+            streamList.innerHTML = `<tr><td colspan="7" class="loading">Belum ada stream</td></tr>`;
+            return;
+        }
+
+        data.forEach(x => {
+            let statusText = x.status === "Stopped" ? "Selesai" : x.status;
+            let badgeClass = "dark";
+            let durationText = "-";
+            let actionButtons = "";
+            let messageText = x.message ? `<br><small class="text-muted">${x.message}</small>` : "";
+
+            if (x.status === "Running") {
+                badgeClass = "success";
+                durationText = x.startTime ? `<span data-start="${x.startTime}"></span>` : "-";
+                actionButtons = `
+                    <button class="btn btn-danger btn-sm" onclick="confirmStop(${x.id})" aria-label="Hentikan Stream"><i class="bi bi-stop-circle"></i></button>
+                    <button class="btn btn-info btn-sm" onclick="confirmRestart(${x.id})" aria-label="Mulai Ulang Stream"><i class="bi bi-arrow-repeat"></i></button>
+                `;
+            } else if (x.status === "Scheduled") {
+                badgeClass = "secondary";
+                actionButtons = `
+                    <button class="btn btn-success btn-sm" onclick="confirmStart(${x.id})" aria-label="Mulai Stream"><i class="bi bi-play"></i></button>
+                `;
+            } else if (x.status === "Stopped") {
+                badgeClass = "dark";
+                durationText = formatDuration(x.stopDuration);
+                messageText = x.stopType ? `<br><small class="text-muted">Stream berakhir ${x.stopType}</small>` : messageText;
+                actionButtons = `
+                    <button class="btn btn-success btn-sm" onclick="confirmStart(${x.id})" aria-label="Mulai Stream"><i class="bi bi-play"></i></button>
+                `;
+            } else if (x.status === "Merging") {
+                badgeClass = "primary";
+                statusText = "Merging";
+                messageText = `<br><small class="text-muted">⏳ Sedang memproses audio/video...</small>`;
+                actionButtons = `<button class="btn btn-success btn-sm" disabled><span class="spinner-border spinner-border-sm"></span></button>`;
+            } else if (x.status === "Preparing") {
+                badgeClass = "warning";
+                actionButtons = `<button class="btn btn-success btn-sm" disabled><span class="spinner-border spinner-border-sm"></span></button>`;
+            }
+            
+            actionButtons += `
+                <button class="btn btn-warning btn-sm" onclick="confirmEdit(${x.id})" aria-label="Edit Stream"><i class="bi bi-pencil"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteStream(${x.id})" aria-label="Hapus Stream"><i class="bi bi-trash"></i></button>
+            `;
+
+            streamList.innerHTML += `
+                <tr>
+                    <td>${x.channel || "-"}</td>
+                    <td>${x.name}${messageText}</td>
+                    <td>${x.platform}</td>
+                    <td><span class="badge bg-${badgeClass}">${statusText}</span></td>
+                    <td>${x.scheduleInput || x.scheduleWIB || "-"}</td>
+                    <td>${durationText}</td>
+                    <td>${actionButtons}</td>
+                </tr>`;
+        });
+    }
+
+    // Fungsi untuk mengisi dropdown filter channel
+    function updateChannelFilter() {
+        const select = document.getElementById("channelFilter");
+        const channels = [...new Set(allStreams.map(x => x.channel).filter(Boolean))];
+        const selectedValue = select.value;
+        select.innerHTML = `<option value="">Semua Channel</option>`;
+        channels.forEach(c => {
+            select.innerHTML += `<option value="${c}">${c}</option>`;
+        });
+        select.value = selectedValue;
+    }
+
+    // Event listener untuk dropdown filter
+    document.getElementById("channelFilter").addEventListener("change", renderStreams);
+
+    function confirmStart(id) { if (confirm("Mulai stream ini?")) startStream(id); }
+    function confirmStop(id) { if (confirm("Stop stream ini?")) stopStream(id); }
+    function confirmRestart(id) { if (confirm("Restart stream ini?")) restartStream(id); }
+    function confirmEdit(id) { if (confirm("Edit stream ini?")) editStream(id); }
+
+    async function startStream(id) { 
+        const btn = document.querySelector(`[onclick="confirmStart(${id})"]`);
+        if (btn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+            btn.disabled = true;
+        }
+        const r = await fetch(`/streams/${id}/start`, { method: "PUT" }); 
+        const j = await r.json(); 
+        showToast(j.message, r.ok); 
+        loadStreams();
+    }
+    
+    async function stopStream(id) { 
+        const btn = document.querySelector(`[onclick="confirmStop(${id})"]`);
+        if (btn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+            btn.disabled = true;
+        }
+        const r = await fetch(`/streams/${id}/stop`, { method: "PUT" }); 
+        const j = await r.json(); 
+        showToast(j.message, r.ok); 
+        loadStreams();
+    }
+    
+    async function restartStream(id) { 
+        const btn = document.querySelector(`[onclick="confirmRestart(${id})"]`);
+        if (btn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+            btn.disabled = true;
+        }
+        const r = await fetch(`/streams/${id}/restart`, { method: "PUT" }); 
+        const j = await r.json(); 
+        showToast(j.message, r.ok); 
+        loadStreams();
+    }
+
+    async function deleteStream(id) { if (confirm("Hapus stream ini?")) { const r = await fetch(`/streams/${id}`, { method: "DELETE" }); const j = await r.json(); showToast(j.message, r.ok); if (r.ok) loadStreams(); } }
+
+    // ===== Edit Stream
+    async function editStream(id) {
+        const r = await fetch("/streams");
+        const s = await r.json();
+        const x = s.find(z => z.id === id);
+        if (!x) return;
+
+        editStreamId.value = x.id;
+        editStreamName.value = x.name;
+        editChannel.value = x.channel || "";
+        editStreamURL.value = x.url;
+        editStreamKey.value = x.key;
+        editSchedule.value = x.schedule ? new Date(x.schedule).toISOString().slice(0, 16) : "";
+        editDuration.value = x.duration || "";
+        new bootstrap.Modal(editStreamModal).show();
+    }
+    
+    // PERBAIKAN: Fungsi saveEditStream
+    async function saveEditStream() {
+        const id = document.getElementById("editStreamId").value;
+        const body = {
+            name: document.getElementById("editStreamName").value.trim(),
+            channel: document.getElementById("editChannel").value.trim() || "-",
+            url: document.getElementById("editStreamURL").value.trim(),
+            key: document.getElementById("editStreamKey").value.trim(),
+            schedule: document.getElementById("editSchedule").value ? new Date(document.getElementById("editSchedule").value).toISOString() : null,
+            duration: document.getElementById("editDuration").value
+        };
+
+        const r = await fetch(`/streams/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        showToast(j.message, r.ok);
+        loadStreams();
+        bootstrap.Modal.getInstance(editStreamModal).hide();
+    }
+
+    // ===== Add Stream
+    // PERBAIKAN: formStream.addEventListener
+    document.getElementById("formStream").addEventListener("submit", async e => {
+        e.preventDefault();
+
+        const streamName = document.getElementById("streamName").value.trim();
+        const platform = document.getElementById("platform").value;
+        const channel = document.getElementById("channel").value.trim() || "-";
+        const rtmp = document.getElementById("rtmp").value.trim();
+        const streamKey = document.getElementById("streamKey").value.trim();
+        const scheduleValue = document.getElementById("schedule").value;
+        const duration = document.getElementById("duration").value;
+        const folderSelect = document.getElementById("folderSelect").value;
+
+        if (!folderSelect) {
+            return showToast("❌ Pilih folder dulu", false);
+        }
+        if (!scheduleValue) {
+            return showToast("❌ Jadwal harus diisi", false);
+        }
+
+        const body = {
+            name: streamName,
+            platform: platform,
+            channel: channel,
+            url: rtmp,
+            key: streamKey,
+            schedule: new Date(scheduleValue).toISOString(),
+            duration: duration,
+            folder: folderSelect
+        };
+
+        const r = await fetch("/streams", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const j = await r.json();
+        showToast(j.message, r.ok);
+
+        if (r.ok) {
+            document.getElementById("formStream").reset();
+            showSection("dashboard");
+        }
+    });
+
+    // ===== Add Folder
+    function addNewFolderFile(file,type){const li=document.createElement("li");li.className="list-group-item d-flex justify-content-between align-items-center";li.innerHTML=`${type==="video"?"🎬":"🎵"} ${file.name}<span class='badge bg-warning ms-2'>Pending</span><span class='remove-btn' onclick='this.parentElement.remove()'>❌</span>`;li.dataset.type=type;li.dataset.file=file.name;newFolderFiles.push({file,type});if(type==="video")newVideos.appendChild(li);else newAudios.appendChild(li);}
+    newVideoInput.onchange=e=>{[...e.target.files].forEach(f=>addNewFolderFile(f,"video"));e.target.value="";};
+    newAudioInput.onchange=e=>{[...e.target.files].forEach(f=>addNewFolderFile(f,"audio"));e.target.value="";};
+
+    async function uploadNewFolderFiles(){
+        if(newFolderFiles.length===0)return showToast("❌ Tidak ada file pending",false);
+        const fn=folderName.value.trim().replace(/\s+/g,"_");
+        if(!fn)return showToast("❌ Nama folder wajib",false);
+        
+        const uploadBtn = document.querySelector("#addFolder .btn-primary");
+        const pb=document.querySelector("#addFolder .progress");
+        const b=uploadProgressAdd;
+        
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Uploading...`;
+        pb.classList.remove("d-none");
+        
+        for(let i=0;i<newFolderFiles.length;i++){
+            const item=newFolderFiles[i];
+            const fd=new FormData();
+            fd.append("folder",fn);
+            fd.append("file",item.file);
+            
+            const r=await fetch("/upload/folder",{method:"POST",body:fd, credentials: "include"});
+            const j=await r.json();
+            const p=Math.round(((i+1)/newFolderFiles.length)*100);
+            b.style.width=p+"%";b.innerText=p+"%";
+            
+            if(!r.ok){
+                showToast("❌ Upload gagal: "+item.file.name,false);
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `Upload File`;
+                pb.classList.add("d-none");
+                return;
+            }
+            showToast("✅ "+item.file.name+" terupload");
+        }
+
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = `Upload File`;
+        pb.classList.add("d-none");
+        b.style.width="0%";
+        b.innerText="0%";
+        newFolderFiles=[];
+        newVideos.innerHTML="";
+        newAudios.innerHTML="";
+    }
+    
+    formFolder.addEventListener("submit",e=>{e.preventDefault();if(newFolderFiles.length>0)return showToast("❌ Upload file dulu sebelum simpan",false);showToast("✅ Folder siap dipakai");showSection("gallery");loadGallery(true);});
+
+    // ===== Gallery
+    async function loadFolders(){const r=await fetch("/folders");const f=await r.json();folderSelect.innerHTML="<option value=''>Pilih Folder</option>";f.forEach(v=>folderSelect.innerHTML+=`<option>${v}</option>`);}
+    async function loadGallery(force=false){galleryList.innerHTML=`<div class="loading">Loading...</div>`;if(!force&&localStorage.galleryCache){try{renderGallery(JSON.parse(localStorage.galleryCache));return;}catch{}}
+        const r=await fetch("/folders");const f=await r.json();let data=[];for(const v of f){const rp=await fetch(`/folders/${encodeURIComponent(v)}/playlist`);const d=await rp.json();data.push({name:v,videos:d.videos,audios:d.audios});}
+        localStorage.galleryCache=JSON.stringify(data);renderGallery(data);}
+    function renderGallery(data){galleryList.innerHTML="";if(data.length===0){galleryList.innerHTML=`<div class="loading">Belum ada folder</div>`;return;}data.forEach(item=>{galleryList.innerHTML+=`<div class="col-md-4 mb-3"><div class="card shadow-sm"><div class="card-body"><h6>${item.name}</h6><p>${item.videos.length} Video, ${item.audios.length} Audio</p><button class="btn btn-primary btn-sm" onclick="previewFolder('${item.name}')"><i class="bi bi-eye"></i> Preview</button><button class="btn btn-warning btn-sm" onclick="editFolder('${item.name}')"><i class="bi bi-pencil"></i> Edit Playlist</button><button class="btn btn-danger btn-sm" onclick="deleteFolder('${item.name}')"><i class="bi bi-trash"></i> Hapus</button></div></div></div>`;});}
+    async function previewFolder(n){const r=await fetch(`/folders/${encodeURIComponent(n)}/playlist`);const d=await r.json();let h=`<p><strong>Folder:</strong> ${n}</p>`;if(d.totalDuration)h+=`<p><strong>Total Durasi:</strong> ${Math.round(d.totalDuration/60)} menit</p>`;d.videos.forEach(v=>{h+=`<p>🎬 ${v}<br><video src="/uploads/videos/${n}/${v}" controls width="100%"></video></p>`;});d.audios.forEach(a=>{h+=`<p>🎵 ${a}<br><audio src="/uploads/audios/${n}/${a}" controls></audio></p>`;});previewContent.innerHTML=h;new bootstrap.Modal(previewModal).show();}
+    async function deleteFolder(n){if(confirm("Yakin hapus folder ini?")){try{const r=await fetch(`/folders/${encodeURIComponent(n)}`,{method:"DELETE"});const j=await r.json();showToast(j.message,r.ok);if(r.ok)loadGallery(true);}catch{showToast("❌ Error hapus folder",false);}}}
+
+    // ===== Edit Playlist
+    function moveItem(li,dir){const p=li.parentElement;if(dir==="up"&&li.previousElementSibling){p.insertBefore(li,li.previousElementSibling);}else if(dir==="down"&&li.nextElementSibling){p.insertBefore(li.nextElementSibling,li);}}
+    function createItemElement(f,t){const li=document.createElement("li");li.className="list-group-item d-flex justify-content-between align-items-center";li.innerHTML=`${t==="video"?"🎬":"🎵"} ${f}<div><button class='btn btn-sm btn-outline-secondary me-1' onclick='moveItem(this.closest("li"),"up")'>⬆️</button><button class='btn btn-sm btn-outline-secondary me-1' onclick='moveItem(this.closest("li"),"down")'>⬇️</button><span class='remove-btn' onclick='this.parentElement.parentElement.remove()'>❌</span></div>`;li.dataset.type=t;li.dataset.file=f;return li;}
+    async function editFolder(n){const r=await fetch(`/folders/${encodeURIComponent(n)}/playlist`);const d=await r.json();editFolderNameInput.value=n;oldFolderName.value=n;playlistVideos.innerHTML="";playlistAudios.innerHTML="";d.videos.forEach(v=>playlistVideos.appendChild(createItemElement(v,"video")));d.audios.forEach(a=>playlistAudios.appendChild(createItemElement(a,"audio")));new Sortable(playlistVideos,{animation:150});new Sortable(playlistAudios,{animation:150});addVideoInput.onchange=e=>{if(e.target.files[0])addPendingFile(n,e.target.files[0]);};addAudioInput.onchange=e=>{if(e.target.files[0])addPendingFile(n,e.target.files[0]);};new bootstrap.Modal(editFolderModal).show();}
+    function addPendingFile(folder,file){const t=file.type.startsWith("video")?"video":"audio";const li=document.createElement("li");li.className="list-group-item d-flex justify-content-between align-items-center";li.innerHTML=`${t==="video"?"🎬":"🎵"} ${file.name}<span class='badge bg-warning ms-2'>Pending</span><span class='remove-btn' onclick='this.parentElement.remove()'>❌</span>`;li.dataset.type=t;li.dataset.file=file.name;li.dataset.pending=true;pendingFiles.push({folder,file,type:t});if(t==="video")playlistVideos.appendChild(li);else playlistAudios.appendChild(li);}
+    async function uploadPendingFiles() {
+        if (pendingFiles.length === 0)
+            return showToast("❌ Tidak ada file pending", false);
+    
+        const uploadBtn = document.querySelector("#editFolderModal .btn-primary");
+        const pb = document.querySelector("#editFolderModal .progress");
+        const b = uploadProgressEdit;
+    
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Uploading...`;
+        pb.classList.remove("d-none");
+    
+        for (let i = 0; i < pendingFiles.length; i++) {
+            const item = pendingFiles[i];
+            const fd = new FormData();
+            fd.append("folder", item.folder);
+            fd.append("file", item.file);
+    
+            const r = await fetch(`/folders/${encodeURIComponent(item.folder)}/files/upload`, {
+                method: "POST",
+                body: fd,
+                credentials: "include"
+            });
+    
+            const j = await r.json();
+            const p = Math.round(((i + 1) / pendingFiles.length) * 100);
+            b.style.width = p + "%";
+            b.innerText = p + "%";
+            showToast(j.message, r.ok);
+    
+            if (!r.ok) {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = `Upload File`;
+                pb.classList.add("d-none");
+                return;
+            }
+        }
+    
+        uploadBtn.disabled = false;
+        uploadBtn.innerHTML = `Upload File`;
+        pb.classList.add("d-none");
+        b.style.width = "0%";
+        b.innerText = "0%";
+        pendingFiles = [];
+        await loadGallery(true);
+    }
+    
+    async function savePlaylist(){
+      const saveBtn = document.querySelector("#editFolderModal .btn-success");
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<span class="spinner-border spinner-border-sm"></span> Saving...`;
+
+      const n = editFolderNameInput.value.trim().replace(/\s+/g,"_");
+      const v = [...playlistVideos.querySelectorAll("li")].map(i => i.dataset.file);
+      const a = [...playlistAudios.querySelectorAll("li")].map(i => i.dataset.file);
+    
+      // Update playlist JSON
+      const r = await fetch(`/folders/${encodeURIComponent(n)}/playlist`, {
+        method:"PUT",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ videos: v, audios: a })
+      });
+    
+      const j = await r.json();
+      showToast(j.message, r.ok);
+    
+      if (r.ok) {
+        // Bersihkan folder sesuai JSON
+        await fetch(`/folders/${encodeURIComponent(n)}/clean`, { method: "POST" });
+      }
+      
+      saveBtn.disabled = false;
+      saveBtn.innerHTML = `Simpan`;
+    
+      bootstrap.Modal.getInstance(editFolderModal).hide();
+      loadGallery(true);
+    }
+
+   // ===== Status
+async function loadStatus() {
+    const r1 = await fetch("/status");
+    if (r1.status === 401) return logout();
+    const s1 = await r1.json();
+
+    const r2 = await fetch("/server-stats");
+    const s2 = await r2.json();
+
+    // CPU
+    cpuBar.style.width = s2.cpuLoad + "%";
+    cpuBar.innerText = s2.cpuLoad + "%";
+
+    // Memory
+    memBar.style.width = s2.memoryUsed + "%";
+    memBar.innerText = s2.memoryUsed + "%";
+
+    // Storage real dari backend
+    const storageUsedPercent = parseFloat(s2.storageUsedPercent);
+    storageBar.style.width = storageUsedPercent + "%";
+    storageBar.innerText = `${storageUsedPercent.toFixed(0)}% (${s2.storageUsed} / ${s2.storageTotal})`;
+
+    // Info tambahan
+    statusContent.innerHTML = `
+        <ul>
+            <li>App Uptime: ${Math.round(s1.uptime / 60)} menit</li>
+            <li>Total Folders: ${s1.totalFolders}</li>
+            <li>Total Videos: ${s1.totalVideos}</li>
+            <li>Total Audios: ${s1.totalAudios}</li>
+            <li>Active Streams: ${s1.activeStreams}</li>
+            <li>Scheduled Streams: ${s1.scheduledStreams}</li>
+        </ul>`;
+}
+
+    // ===== Profil
+    changeCredForm.addEventListener("submit",async e=>{e.preventDefault();if(!confirm("Yakin mau update profil?"))return;const body={newUsername:newUsername.value,oldPass:oldPass.value,newPass:newPass.value};const r=await fetch("/change-credentials",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});if(r.ok){showToast("✅ Profil berhasil diperbarui");setTimeout(()=>location.reload(),1500);}else showToast("❌ Gagal update profil",false);});
+</script>
+</body>
+</html>
