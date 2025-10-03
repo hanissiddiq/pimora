@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PIMORA STREAM – Pemilihan Paket & Login</title>
+  <!-- Bootstrap & Icons for login/app dashboards -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    /* Global body styling */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: #0f172a;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center; 
+      min-height: 100vh;
+      justify-content: flex-start;
+    }
+    /* Used when showing checkout process to centre content */
+    .checkout-active-body {
+      justify-content: center !important; 
+      padding: 1rem;
+    }
+    /* Hide helper */
+    .hidden {
+      display: none !important;
+    }
+
+    /* Buttons */
+    .btn-primary-custom {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #3b82f6;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.3s ease;
+    }
+    .btn-primary-custom:hover {
+      background-color: #2563eb;
+    }
+    /* ====== PLAN SELECTION STYLES ====== */
+    #plan-selection-page {
+      max-width: 1200px;
+      width: 100%;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #3b82f6;
+      margin-bottom: 0.5rem;
+    }
+    .header p {
+      font-size: 1.1rem;
+      color: #94a3b8;
+    }
+    .duration-selector {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+      background-color: #1a2035;
+      border-radius: 9999px;
+      padding: 0.25rem;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .duration-selector button {
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    .duration-selector button.active {
+      background-color: #3b82f6;
+      color: white;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .plan-card {
+      background-color: #1a2035;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .plan-card h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+    }
+    .plan-card .price {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #3b82f6;
+      margin-bottom: 1rem;
+    }
+    .plan-card ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex-grow: 1;
+    }
+    .plan-card li {
+      font-size: 1rem;
+      color: #94a3b8;
+      margin-bottom: 0.5rem;
+    }
+    .plan-card li::before {
+      content: "✓";
+      color: #3b82f6;
+      font-weight: bold;
+      display: inline-block;
+      width: 1.2em;
+      margin-left: -1.2em;
+    }
+
+    /* ====== CHECKOUT STYLES ====== */
+    #checkout-page {
+      max-width: 600px;
+      width: 100%;
+      margin: auto;
+    }
+    .checkout-modal {
+      background-color: #1a2035;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+      margin-top: 1rem;
+    }
+    .checkout-modal h2 {
+      font-size: 1.8rem;
+      color: white;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    /* Form styling */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: #cbd5e1;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #334155;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      color: white;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    .form-actions .btn-primary-custom {
+      width: 48%;
+    }
+    /* Order summary grid */
+    .order-summary {
+      margin-bottom: 2rem;
+    }
+    .order-summary .summary-row {
+      display: grid;
+      grid-template-columns: 1fr auto max-content;
+      gap: 10px; 
+      padding: 0.75rem 0;
+      border-bottom: 1px dashed #334155;
+      font-size: 1.05rem;
+    }
+    .order-summary .summary-row span:nth-child(1) { 
+      font-weight: 500;
+      text-align: left;
+      color: #94a3b8;
+    }
+    .order-summary .summary-row span:nth-child(3) { 
+      font-weight: 600;
+      text-align: right; 
+      color: #e2e8f0;
+    }
+    .order-summary .total {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #3b82f6;
+      border-top: 2px solid #3b82f6;
+      padding-top: 1rem;
+      margin-top: 1rem;
+      border-bottom: none;
+    }
+    .order-summary .total span:last-child {
+      font-weight: 700;
+      text-align: right;
+      color: white; 
+    }
+    /* Payment methods */
+    .payment-methods {
+      margin-bottom: 2rem;
+    }
+    .payment-methods h3 {
+      font-size: 1.2rem;
+      color: #e2e8f0;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 0.5rem;
+    }
+    .payment-methods .method-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      border: 1px solid #334155;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
+    .payment-methods .method-item:hover {
+      background-color: #2d3748;
+    }
+    .payment-methods .method-item.selected {
+      border: 2px solid #3b82f6;
+      background-color: #162446;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.4);
+    }
+    .payment-methods .method-icon {
+      font-weight: 700;
+      color: #cbd5e1;
+      font-size: 0.9rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background-color: #334155;
+    }
+    /* Payment details */
+    .payment-details {
+      text-align: center;
+    }
+    .payment-details .value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #3b82f6;
+      margin-bottom: 1.5rem;
+    }
+    .payment-details .timer {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #fca5a5;
+    }
+    /* Success page styling */
+    #payment-success-page h2 {
+      color: #10b981;
+      font-size: 2.5rem;
+    }
+
+    /* ====== LOGIN & APP STYLES ====== */
+    /* Login overlay */
+    .login-page {
+      min-height:100vh; 
+      display:flex; 
+      justify-content:center; 
+      align-items:center;
+      background: radial-gradient(circle at bottom right, #1f2c3d, #0d121c);
+      color:#fff;
+      width: 100%;
+    }
+    .login-box {
+      background-color: rgba(255,255,255,0.1);
+      padding:40px; 
+      border-radius:20px; 
+      max-width:400px; 
+      width:100%;
+      backdrop-filter: blur(15px); 
+      border:1px solid rgba(255,255,255,0.2);
+    }
+    .login-btn { 
+      width:100%; 
+      padding:12px; 
+      background:linear-gradient(135deg,#4c4d6c,#3c3d5e);
+      border:none; 
+      border-radius:8px; 
+      color:#fff; 
+      font-weight:bold; 
+    }
+    /* Sidebar & app content */
+    .content { margin-left:260px; padding:20px; }
+    .sidebar { 
+      height:100vh; 
+      width:250px; 
+      position:fixed; 
+      top:0; 
+      left:0; 
+      background:#212529; 
+      color:#fff; 
+      padding:10px; 
+    }
+    .sidebar a { 
+      display:block; 
+      padding:10px; 
+      margin:5px 0; 
+      color:#fff; 
+      text-decoration:none; 
+      border-radius:5px; 
+    }
+    .sidebar a:hover, .sidebar a.active { 
+      background:#0d6efd; 
+    }
+    /* Responsive design tweaks */
+    @media (max-width: 768px) {
+      body { padding: 1rem; }
+      .header h1 { font-size: 2rem; }
+      .header p { font-size: 1rem; }
+      .sidebar { width: 200px; }
+      .content { margin-left: 210px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="page-content-wrapper">
+
+    <!-- ============================== -->
+    <!-- BAGIAN 1: PEMILIHAN PAKET      -->
+    <!-- ============================== -->
+    <div id="plan-selection-page">
+      <div class="header">
+        <h1>PIMORA STREAM – Paket Streaming Otomatis</h1>
+        <p>Pilih sesuai kebutuhan Anda</p>
+      </div>
+      
+      <div class="duration-selector">
+        <button id="show-daily" class="active">Harian</button>
+        <button id="show-weekly">Mingguan</button>
+        <button id="show-monthly">Bulanan</button>
+      </div>
+
+      <!-- Paket Harian -->
+      <div class="plan-section" id="daily-plans">
+        <div class="plans-grid">
+          <div class="plan-card" data-plan="Basic" data-price="10000" data-duration="Harian">
+            <div>
+              <h3>Basic</h3>
+              <div class="price">Rp10.000</div>
+              <ul>
+                <li>1 Stream | Durasi max 2 jam</li>
+                <li>Cocok untuk uji coba</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Standard" data-price="15000" data-duration="Harian">
+            <div>
+              <h3>Standard</h3>
+              <div class="price">Rp15.000</div>
+              <ul>
+                <li>2 Stream | Durasi max 4 jam</li>
+                <li>Multi-channel support</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Pro" data-price="20000" data-duration="Harian">
+            <div>
+              <h3>Pro</h3>
+              <div class="price">Rp20.000</div>
+              <ul>
+                <li>3 Stream | Durasi max 6 jam</li>
+                <li>Event harian intensif</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+        </div>
+      </div>
+      <!-- Paket Mingguan -->
+      <div class="plan-section hidden" id="weekly-plans">
+        <div class="plans-grid">
+          <div class="plan-card" data-plan="Basic" data-price="40000" data-duration="Mingguan">
+            <div>
+              <h3>Basic</h3>
+              <div class="price">Rp40.000</div>
+              <ul>
+                <li>5 Stream | Durasi max 3 jam</li>
+                <li>Untuk konten rutin</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Standard" data-price="60000" data-duration="Mingguan">
+            <div>
+              <h3>Standard</h3>
+              <div class="price">Rp60.000</div>
+              <ul>
+                <li>10 Stream | Durasi max 4 jam</li>
+                <li>Multi-channel YouTube/FB</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Pro" data-price="80000" data-duration="Mingguan">
+            <div>
+              <h3>Pro</h3>
+              <div class="price">Rp80.000</div>
+              <ul>
+                <li>15 Stream | Durasi max 6 jam</li>
+                <li>Cocok untuk kajian/kelas mingguan</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+        </div>
+      </div>
+      <!-- Paket Bulanan -->
+      <div class="plan-section hidden" id="monthly-plans">
+        <div class="plans-grid">
+          <div class="plan-card" data-plan="Basic" data-price="150000" data-duration="Bulanan">
+            <div>
+              <h3>Basic</h3>
+              <div class="price">Rp150.000</div>
+              <ul>
+                <li>30 Stream | Durasi max 4 jam</li>
+                <li>1 stream per hari</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Standard" data-price="200000" data-duration="Bulanan">
+            <div>
+              <h3>Standard</h3>
+              <div class="price">Rp200.000</div>
+              <ul>
+                <li>60 Stream | Durasi max 6 jam</li>
+                <li>2 stream per hari</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+          <div class="plan-card" data-plan="Pro" data-price="300000" data-duration="Bulanan">
+            <div>
+              <h3>Pro</h3>
+              <div class="price">Rp300.000</div>
+              <ul>
+                <li>100 Stream | Durasi max 8 jam</li>
+                <li>Channel profesional</li>
+              </ul>
+            </div>
+            <a href="#" class="btn-primary-custom select-plan-btn">Pilih Paket</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ============================== -->
+    <!-- BAGIAN 2: CHECKOUT PROSES      -->
+    <!-- ============================== -->
+    <div class="container hidden" id="checkout-page">
+      <div id="checkout-container-wrapper">
+          
+        <!-- Step 2: Data diri -->
+        <div class="checkout-modal" id="user-data-form-page">
+          <h2>Lengkapi Data Diri</h2>
+          <form id="user-data-form">
+            <div class="form-group">
+              <label for="user-name">Nama Lengkap</label>
+              <input type="text" id="user-name" name="name" required placeholder="Cth: Budi Santoso">
+            </div>
+            <div class="form-group">
+              <label for="user-phone">Nomor HP (WhatsApp)</label>
+              <input type="tel" id="user-phone" name="phone" required placeholder="Cth: 081234567890">
+            </div>
+            <div class="form-group">
+              <label for="user-email">Email Konfirmasi</label>
+              <input type="email" id="user-email" name="email" required placeholder="Cth: email@contoh.com">
+            </div>
+
+            <div class="form-actions">
+              <button type="button" class="btn-primary-custom" style="background-color: #475569;" id="back-to-plans-from-form">Kembali</button>
+              <button type="submit" class="btn-primary-custom">Lanjut ke Konfirmasi</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 3a: Konfirmasi & Metode Pembayaran -->
+        <div class="checkout-modal hidden" id="checkout-confirmation-page">
+          <h2>Konfirmasi Pembelian</h2>
+          <div class="order-summary">
+            <!-- Data Pengguna -->
+            <div class="summary-row"><span>Nama</span><span>:</span><span id="summary-user-name"></span></div>
+            <div class="summary-row"><span>Email</span><span>:</span><span id="summary-user-email"></span></div>
+            <div class="summary-row"><span>No. HP</span><span>:</span><span id="summary-user-phone"></span></div>
+            <div class="summary-row" style="border-bottom: 2px solid #334155; padding-bottom: 10px; margin-bottom: 10px;"></div>
+
+            <!-- Paket -->
+            <div class="summary-row"><span>Paket</span><span>:</span><span id="summary-name"></span></div>
+            <div class="summary-row"><span>Harga Paket</span><span>:</span><span id="summary-price"></span></div>
+            <div class="summary-row"><span>Biaya Admin (Estimasi)</span><span>:</span><span id="summary-admin-fee">Rp750</span></div>
+            <div class="total"><span>Total Pembayaran</span><span id="summary-total-price"></span></div>
+          </div>
+          
+          <div class="payment-methods">
+            <h3>Pilih Metode Pembayaran</h3>
+            <div class="method-item" data-method="QRIS"><span>QRIS (Semua Bank/E-Wallet)</span><span class="method-icon">QRIS</span></div>
+            <div class="method-item" data-method="VA"><span>Virtual Account BCA</span><span class="method-icon">BCA</span></div>
+            <div class="method-item" data-method="EWALLET"><span>E-Wallet DANA</span><span class="method-icon">DANA</span></div>
+          </div>
+
+          <div class="payment-actions">
+            <button class="btn-primary-custom" style="background-color: #475569;" id="back-to-form-btn">Kembali</button>
+            <button class="btn-primary-custom" id="confirm-payment-btn">Konfirmasi & Bayar</button>
+          </div>
+        </div>
+        
+        <!-- Step 3b: Detail Pembayaran -->
+        <div class="checkout-modal hidden" id="payment-details-page">
+          <h2 id="payment-details-title">Detail Pembayaran</h2>
+          <div class="payment-details">
+            <p>Harap selesaikan pembayaran dalam waktu:</p>
+            <p class="timer" id="countdown-timer">15:00</p>
+            
+            <div id="qris-details" class="hidden">
+              <h3>Bayar dengan QRIS</h3>
+              <img src="https://placehold.co/200x200/ffffff/000000?text=QR+CODE+SAMPLE" alt="QR Code Sample" class="qr-code">
+              <p>Scan kode QR ini menggunakan aplikasi bank atau e-wallet Anda.</p>
+            </div>
+
+            <div id="va-details" class="hidden">
+              <h3>Bayar dengan Virtual Account</h3>
+              <p>Transfer ke Virtual Account di bawah ini:</p>
+              <p>Nomor Virtual Account:</p>
+              <div class="value" id="va-number-display"></div>
+              <p>Total Tagihan: <span class="value" id="final-total-display"></span></p>
+            </div>
+            
+            <div id="ewallet-details" class="hidden">
+              <h3>Bayar dengan E-Wallet</h3>
+              <p>Anda akan diarahkan ke aplikasi <span id="ewallet-name"></span>.</p>
+              <p>Pastikan Anda memiliki saldo yang cukup.</p>
+              <button class="btn-primary-custom" style="background-color: #10b981;">Lanjut ke Aplikasi Bayar</button>
+            </div>
+          </div>
+          <div class="payment-actions">
+            <button type="button" class="btn-primary-custom" style="width: 100%; background-color: #475569;" id="back-to-confirmation-btn">Kembali ke Pilihan Metode</button> 
+          </div>
+        </div>
+
+        <!-- Step 4: Pembayaran Berhasil -->
+        <div class="checkout-modal hidden" id="payment-success-page" style="text-align: center;">
+          <h2>✅ Pembayaran Berhasil!</h2>
+          <p>Terima kasih, <span id="success-user-name"></span>.</p>
+          <p>Kami telah menerima pembayaran Anda untuk paket <span id="success-plan-name"></span>.</p>
+          <p>Akun Anda akan segera diaktifkan.</p>
+          <p style="margin-top: 2rem; font-size: 0.9em; color: #94a3b8;">Anda akan diarahkan ke halaman login dalam <span id="success-countdown">5</span> detik.</p>
+          <a href="#" class="btn-primary-custom" id="manual-login-redirect-btn">Lanjut ke Halaman Login</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- BAGIAN 3: LOGIN PAGE          -->
+    <!-- ============================== -->
+    <div id="loginPage" class="login-page hidden">
+      <div class="login-box text-center">
+        <h2 class="mb-4">PIMORA STREAM</h2>
+        <form id="loginForm">
+          <div class="mb-3 text-start">
+            <label>Email</label>
+            <input type="email" id="email" class="form-control" placeholder="example@mail.com" required>
+          </div>
+          <div class="mb-3 text-start">
+            <label>Password</label>
+            <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="login-btn">Masuk</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ============================== -->
+    <!-- BAGIAN 4: APLIKASI / DASHBOARD -->
+    <!-- ============================== -->
+    <div id="app" class="d-none">
+      <div class="sidebar">
+        <h4 class="text-center">PIMORA</h4>
+        <a href="#" class="active" onclick="showSection('dashboard')"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a href="#" onclick="showSection('gallery')"><i class="bi bi-collection-play"></i> Galeri</a>
+        <a href="#" onclick="showSection('status')"><i class="bi bi-activity"></i> Status</a>
+        <a href="#" onclick="showSection('profile')"><i class="bi bi-person-circle"></i> Profil</a>
+        <a href="#" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+      </div>
+
+      <div class="content">
+        <!-- Dashboard -->
+        <div id="dashboard" class="content-section">
+          <h3><i class="bi bi-speedometer2"></i> Dashboard</h3>
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead><tr><th>Channel</th><th>Nama Stream</th><th>Platform</th><th>Status</th><th>Jadwal</th><th>Durasi</th><th>Aksi</th></tr></thead>
+              <tbody id="streamList"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Gallery -->
+        <div id="gallery" class="content-section d-none">
+          <h3><i class="bi bi-collection-play"></i> Galeri</h3>
+          <div id="galleryList" class="row mt-3"></div>
+        </div>
+
+        <!-- Status -->
+        <div id="status" class="content-section d-none">
+          <h3><i class="bi bi-activity"></i> Server Status</h3>
+          <div class="row">
+            <div class="col-md-4"><div class="card p-3"><h6>CPU</h6><div class="progress"><div id="cpuBar" class="progress-bar bg-primary">0%</div></div></div></div>
+            <div class="col-md-4"><div class="card p-3"><h6>Memory</h6><div class="progress"><div id="memBar" class="progress-bar bg-success">0%</div></div></div></div>
+            <div class="col-md-4"><div class="card p-3"><h6>Storage</h6><div class="progress"><div id="storageBar" class="progress-bar bg-warning">0%</div></div></div></div>
+          </div>
+          <div id="statusContent" class="mt-3"></div>
+        </div>
+
+        <!-- Profile -->
+        <div id="profile" class="content-section d-none">
+          <h3><i class="bi bi-person-circle"></i> Profil</h3>
+          <p><b>Username:</b> AdminDummy</p>
+          <p><b>Email:</b> dummy@mail.com</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Component -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11;">
+    <div id="toast" class="toast text-bg-success">
+      <div class="d-flex">
+        <div class="toast-body" id="toastMessage">✅ Dummy OK</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ======= GLOBAL REFERENCES =======
+    const body = document.body;
+    // Plan & checkout pages
+    const planSelectionPage = document.getElementById('plan-selection-page');
+    const checkoutPage = document.getElementById('checkout-page');
+    const userDataFormPage = document.getElementById('user-data-form-page');
+    const checkoutConfirmationPage = document.getElementById('checkout-confirmation-page');
+    const paymentDetailsPage = document.getElementById('payment-details-page');
+    const paymentSuccessPage = document.getElementById('payment-success-page');
+
+    // Login & App
+    const loginPageDiv = document.getElementById('loginPage');
+    const appDiv = document.getElementById('app');
+    const loginForm = document.getElementById('loginForm');
+
+    // Form & summary elements
+    const userDataForm = document.getElementById('user-data-form');
+    const userNameInput = document.getElementById('user-name');
+    const userPhoneInput = document.getElementById('user-phone');
+    const userEmailInput = document.getElementById('user-email');
+    const backToPlansFromFormBtn = document.getElementById('back-to-plans-from-form');
+
+    const summaryName = document.getElementById('summary-name');
+    const summaryPrice = document.getElementById('summary-price');
+    const summaryTotalPrice = document.getElementById('summary-total-price');
+    const summaryUserName = document.getElementById('summary-user-name');
+    const summaryUserEmail = document.getElementById('summary-user-email');
+    const summaryUserPhone = document.getElementById('summary-user-phone');
+    const paymentMethodItems = document.querySelectorAll('.method-item');
+    const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
+    const backToFormBtn = document.getElementById('back-to-form-btn');
+    const backToConfirmationBtn = document.getElementById('back-to-confirmation-btn');
+    const countdownTimer = document.getElementById('countdown-timer');
+    const vaNumberDisplay = document.getElementById('va-number-display');
+    const finalTotalDisplay = document.getElementById('final-total-display');
+
+    const successUserName = document.getElementById('success-user-name');
+    const successPlanName = document.getElementById('success-plan-name');
+    const successCountdownEl = document.getElementById('success-countdown');
+    const manualLoginRedirectBtn = document.getElementById('manual-login-redirect-btn');
+
+    // ======= STATE =======
+    let selectedPlan = null;
+    let userData = {};
+    let selectedMethod = null;
+    let finalTotal = 0;
+    let timerInterval;
+
+    // ======= TOAST UTILITY =======
+    function showToast(msg, success = true) {
+      const toastEl = document.getElementById("toast");
+      document.getElementById("toastMessage").innerText = msg;
+      toastEl.classList.toggle("text-bg-success", success);
+      toastEl.classList.toggle("text-bg-danger", !success);
+      new bootstrap.Toast(toastEl).show();
+    }
+
+    // ======= PAGE CONTROLLER =======
+    function showPage(pageId) {
+      // Hide all sections
+      planSelectionPage.classList.add('hidden');
+      checkoutPage.classList.add('hidden');
+      userDataFormPage.classList.add('hidden');
+      checkoutConfirmationPage.classList.add('hidden');
+      paymentDetailsPage.classList.add('hidden');
+      paymentSuccessPage.classList.add('hidden');
+      loginPageDiv.classList.add('hidden');
+      appDiv.classList.add('d-none');
+
+      // Reset body classes
+      body.classList.remove('checkout-active-body');
+
+      // Stop any running timers
+      if (timerInterval) clearInterval(timerInterval);
+
+      if (pageId === 'plan-selection') {
+        planSelectionPage.classList.remove('hidden');
+      } else if (pageId === 'form') {
+        checkoutPage.classList.remove('hidden');
+        userDataFormPage.classList.remove('hidden');
+        body.classList.add('checkout-active-body');
+      } else if (pageId === 'confirmation') {
+        checkoutPage.classList.remove('hidden');
+        checkoutConfirmationPage.classList.remove('hidden');
+        body.classList.add('checkout-active-body');
+        updateConfirmationSummary();
+      } else if (pageId === 'details') {
+        checkoutPage.classList.remove('hidden');
+        paymentDetailsPage.classList.remove('hidden');
+        body.classList.add('checkout-active-body');
+      } else if (pageId === 'success') {
+        checkoutPage.classList.remove('hidden');
+        paymentSuccessPage.classList.remove('hidden');
+        body.classList.add('checkout-active-body');
+      } else if (pageId === 'login') {
+        loginPageDiv.classList.remove('hidden');
+      } else if (pageId === 'app') {
+        appDiv.classList.remove('d-none');
+        showSection('dashboard');
+        loadStreams();
+        loadGallery();
+        loadStatus();
+      }
+    }
+
+    // ======= UPDATE SUMMARY =======
+    function updateConfirmationSummary() {
+      if (!selectedPlan) return;
+      const adminFee = 750;
+      finalTotal = selectedPlan.price + adminFee;
+      summaryName.textContent = `${selectedPlan.name} ${selectedPlan.duration}`;
+      summaryPrice.textContent = `Rp${selectedPlan.price.toLocaleString('id-ID')}`;
+      summaryTotalPrice.textContent = `Rp${finalTotal.toLocaleString('id-ID')}`;
+      summaryUserName.textContent = userData.name || '-';
+      summaryUserEmail.textContent = userData.email || '-';
+      summaryUserPhone.textContent = userData.phone || '-';
+    }
+
+    // ======= PACKAGE DURATION TABS =======
+    document.querySelectorAll('.duration-selector button').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('.duration-selector button').forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+        document.getElementById('daily-plans').classList.add('hidden');
+        document.getElementById('weekly-plans').classList.add('hidden');
+        document.getElementById('monthly-plans').classList.add('hidden');
+        if (button.id === 'show-daily') document.getElementById('daily-plans').classList.remove('hidden');
+        if (button.id === 'show-weekly') document.getElementById('weekly-plans').classList.remove('hidden');
+        if (button.id === 'show-monthly') document.getElementById('monthly-plans').classList.remove('hidden');
+      });
+    });
+
+    // ======= SELECT PACKAGE =======
+    document.querySelectorAll('.select-plan-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        e.preventDefault();
+        const card = e.target.closest('.plan-card');
+        selectedPlan = {
+          name: card.getAttribute('data-plan'),
+          price: parseFloat(card.getAttribute('data-price')),
+          duration: card.getAttribute('data-duration')
+        };
+        showPage('form');
+      });
+    });
+
+    // ======= USER DATA FORM =======
+    userDataForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!userNameInput.value || !userPhoneInput.value || !userEmailInput.value) {
+        alert('Semua kolom wajib diisi.');
+        return;
+      }
+      userData = {
+        name: userNameInput.value,
+        phone: userPhoneInput.value,
+        email: userEmailInput.value
+      };
+      document.querySelectorAll('.method-item').forEach(i => i.classList.remove('selected'));
+      selectedMethod = null;
+      showPage('confirmation');
+    });
+
+    // ======= BACK BUTTONS IN CHECKOUT =======
+    backToPlansFromFormBtn.addEventListener('click', () => showPage('plan-selection'));
+    backToFormBtn.addEventListener('click', () => showPage('form'));
+    backToConfirmationBtn.addEventListener('click', () => {
+      showPage('confirmation');
+      if (timerInterval) clearInterval(timerInterval);
+    });
+
+    // ======= PAYMENT METHOD SELECTION =======
+    paymentMethodItems.forEach(item => {
+      item.addEventListener('click', () => {
+        paymentMethodItems.forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        selectedMethod = item.getAttribute('data-method');
+      });
+    });
+
+    // ======= CONFIRM PAYMENT BUTTON =======
+    document.getElementById('confirm-payment-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!selectedMethod) {
+        alert('Pilih metode pembayaran terlebih dahulu.');
+        return;
+      }
+      showPage('details');
+      document.getElementById('qris-details').classList.add('hidden');
+      document.getElementById('va-details').classList.add('hidden');
+      document.getElementById('ewallet-details').classList.add('hidden');
+      const paymentTitle = document.getElementById('payment-details-title');
+      if (selectedMethod === 'QRIS') {
+        paymentTitle.textContent = "Detail Pembayaran QRIS";
+        document.getElementById('qris-details').classList.remove('hidden');
+      } else if (selectedMethod === 'VA') {
+        paymentTitle.textContent = "Detail Pembayaran Virtual Account";
+        vaNumberDisplay.textContent = '888808123456789';
+        finalTotalDisplay.textContent = `Rp${finalTotal.toLocaleString('id-ID')}`;
+        document.getElementById('va-details').classList.remove('hidden');
+      } else if (selectedMethod === 'EWALLET') {
+        paymentTitle.textContent = "Detail Pembayaran E-Wallet";
+        document.getElementById('ewallet-name').textContent = 'DANA';
+        document.getElementById('ewallet-details').classList.remove('hidden');
+      }
+      // Start countdown timer (simulate expiry & success)
+      let timeLeft = 15 * 60;
+      if (timerInterval) clearInterval(timerInterval);
+      const simulatedSuccessTime = 10;
+      let timeElapsed = 0;
+      timerInterval = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdownTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        timeLeft--;
+        timeElapsed++;
+        if (timeElapsed === simulatedSuccessTime) {
+          handlePaymentSuccess();
+        }
+        if (timeLeft < 0) {
+          clearInterval(timerInterval);
+          countdownTimer.textContent = "Waktu Habis";
+        }
+      }, 1000);
+    });
+
+    // ======= HANDLE PAYMENT SUCCESS =======
+    function handlePaymentSuccess() {
+      if (timerInterval) clearInterval(timerInterval);
+      successUserName.textContent = userData.name;
+      successPlanName.textContent = `${selectedPlan.name} ${selectedPlan.duration}`;
+      showPage('success');
+      let redirectTime = 5;
+      successCountdownEl.textContent = redirectTime;
+      const redirectInterval = setInterval(() => {
+        redirectTime--;
+        successCountdownEl.textContent = redirectTime;
+        if (redirectTime <= 0) {
+          clearInterval(redirectInterval);
+          showPage('login');
+          showToast("Pembayaran berhasil! Silakan login untuk melanjutkan.", true);
+        }
+      }, 1000);
+      manualLoginRedirectBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (redirectInterval) clearInterval(redirectInterval);
+        showPage('login');
+        showToast("Pembayaran berhasil! Silakan login untuk melanjutkan.", true);
+      }, { once: true });
+    }
+
+    // ======= LOGIN & APP LOGIC =======
+    loginForm.addEventListener("submit", e => {
+      e.preventDefault();
+      // Dummy login: simply show app
+      showPage('app');
+      loginPageDiv.classList.add('hidden');
+      showToast("✅ Login sukses (dummy)");
+    });
+    function logout() {
+      // Return to plan selection page after logout
+      showPage('plan-selection');
+      showToast("✅ Logout sukses (dummy)");
+    }
+
+    // ======= APP SECTION LOGIC =======
+    function showSection(id) {
+      document.querySelectorAll(".content-section").forEach(s => s.classList.add("d-none"));
+      document.getElementById(id).classList.remove("d-none");
+      document.querySelectorAll(".sidebar a").forEach(a => a.classList.remove("active"));
+      const link = document.querySelector(`.sidebar a[onclick*="${id}"]`);
+      if (link) link.classList.add("active");
+      if (id === "dashboard") loadStreams();
+      if (id === "gallery") loadGallery();
+      if (id === "status") loadStatus();
+    }
+    // Dummy data for streams
+    let allStreams = [];
+    function loadStreams() {
+      allStreams = [
+        { id: 1, name: "Stream Dummy 1", channel: "Channel A", platform: "YouTube", status: "Running", startTime: new Date().toISOString() },
+        { id: 2, name: "Stream Dummy 2", channel: "Channel B", platform: "Facebook", status: "Scheduled", scheduleWIB: "04/10/2025 14:00" },
+        { id: 3, name: "Stream Dummy 3", channel: "Channel C", platform: "Twitch", status: "Stopped", stopType: "timeout", stopDuration: 3600 }
+      ];
+      renderStreams();
+    }
+    function formatDuration(sec) {
+      const h = String(Math.floor(sec/3600)).padStart(2,'0');
+      const m = String(Math.floor((sec%3600)/60)).padStart(2,'0');
+      const s = String(sec%60).padStart(2,'0');
+      return `${h}:${m}:${s}`;
+    }
+    function renderStreams() {
+      const streamList = document.getElementById("streamList");
+      streamList.innerHTML = "";
+      allStreams.forEach(x => {
+        let status = x.status, badge = "secondary", dur = "-";
+        if (x.status === "Running") { badge = "success"; dur = `<span>Live</span>`; }
+        if (x.status === "Stopped") { badge = "dark"; dur = formatDuration(x.stopDuration); }
+        streamList.innerHTML += `
+          <tr>
+            <td>${x.channel}</td>
+            <td>${x.name}</td>
+            <td>${x.platform}</td>
+            <td><span class="badge bg-${badge}">${status}</span></td>
+            <td>${x.scheduleWIB || "-"}</td>
+            <td>${dur}</td>
+            <td><button class="btn btn-sm btn-primary" onclick="showToast('Dummy Action OK')">Action</button></td>
+          </tr>`;
+      });
+    }
+    // Dummy gallery
+    function loadGallery() {
+      const data = [
+        { name: "Folder1", videos: ["vid1.mp4","vid2.mp4"], audios: ["aud1.mp3"] },
+        { name: "Folder2", videos: ["vid3.mp4"], audios: ["aud2.mp3","aud3.mp3"] }
+      ];
+      const g = document.getElementById("galleryList");
+      g.innerHTML = "";
+      data.forEach(item => {
+        g.innerHTML += `
+          <div class="col-md-4"><div class="card p-3 mb-3">
+            <h6>${item.name}</h6>
+            <p>${item.videos.length} Video, ${item.audios.length} Audio</p>
+            <button class="btn btn-sm btn-primary" onclick="showToast('Preview Dummy')">Preview</button>
+          </div></div>`;
+      });
+    }
+    // Dummy server status
+    function loadStatus() {
+      cpuBar.style.width = "40%"; cpuBar.innerText = "40%";
+      memBar.style.width = "60%"; memBar.innerText = "60%";
+      storageBar.style.width = "75%"; storageBar.innerText = "75% (150GB/200GB)";
+      statusContent.innerHTML = `
+        <ul>
+          <li>App Uptime: 123 menit</li>
+          <li>Total Folders: 5</li>
+          <li>Total Videos: 12</li>
+          <li>Total Audios: 8</li>
+          <li>Active Streams: 1</li>
+          <li>Scheduled Streams: 2</li>
+        </ul>`;
+    }
+    // ======= INITIALISE =======
+    window.onload = () => {
+      showPage('plan-selection');
+      document.getElementById('show-daily').click();
+    };
+  </script>
+</body>
+</html>
