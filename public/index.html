@@ -171,7 +171,7 @@
 <body>
 
     <div class="row bg-login" id="loginPage">
-      <div class="col-6 text-center my-3 d-flex flex-column align-items-center justify-content-center"
+        <div class="col-6 text-center my-3 d-flex flex-column align-items-center justify-content-center"
             style="height:100vh;">
             <h1 style="    font-size: 4.5em;
     font-weight: 700;
@@ -205,8 +205,179 @@
             </div>
         </div> -->
 
+        <div class="login-page col-6" >
+            <div class="card p-4 shadow-sm" id="loginCard" style="max-width:400px;width:100%">
+                <h4 class="mb-3 text-center">🔑 Login PIMORA</h4>
+                <form id="loginForm">
+                    <div class="mb-3"><input type="email" id="username" class="form-control" placeholder="Email"
+                            required></div>
+                    <div class="mb-3"><input type="password" id="password" class="form-control"
+                            placeholder="Password" required></div>
+                    <button type="submit" class="btn btn-primary w-100">Login</button>
+                </form>
+                <div class="text-center mt-3">
+                    <button id="showRegisterBtn" class="btn btn-link">Belum punya akun? Daftar</button>
+                </div>
+            </div>
 
-        <div class="login-page col-6">
+            <div id="registerCard" class="card p-4 shadow-sm mt-3 d-none" style="max-width:400px;width:100%">
+                <h4 class="mb-3 text-center">📝 Daftar Akun</h4>
+                <form id="registerForm">
+                    <div class="mb-3"><input type="text" id="regName" class="form-control"
+                            placeholder="Nama (opsional)"></div>
+                    <div class="mb-3"><input type="email" id="regEmail" class="form-control" placeholder="Email"
+                            required></div>
+                    <div class="mb-3"><input type="password" id="regPassword" class="form-control"
+                            placeholder="Password" required></div>
+                    <button type="submit" class="btn btn-success w-100">Daftar</button>
+                </form>
+                <div class="text-center mt-2">
+                    <button id="resendBtn" class="btn btn-link">Kirim ulang email verifikasi</button>
+                </div>
+                <div class="text-center">
+                    <button id="hideRegisterBtn" class="btn btn-link">Sudah punya akun? Login</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- satrt script handle toggle and register -->
+        <!-- <script>
+            const loginCard = document.getElementById("loginCard");
+            const registerCard = document.getElementById("registerCard");
+            const showRegisterBtn = document.getElementById("showRegisterBtn");
+            const hideRegisterBtn = document.getElementById("hideRegisterBtn");
+            const hideLoginBtn = document.getElementById("hideLoginBtn");
+            const registerForm = document.getElementById("registerForm");
+            const resendBtn = document.getElementById("resendBtn");
+
+            showRegisterBtn?.addEventListener("click", () => registerCard.classList.toggle("d-none"));
+            hideRegisterBtn?.addEventListener("click", () => registerCard.classList.add("d-none"));
+
+            registerForm?.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                try {
+                    const r = await fetch("/register", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            name: document.getElementById("regName").value,
+                            email: document.getElementById("regEmail").value,
+                            password: document.getElementById("regPassword").value
+                        })
+                    });
+                    const j = await r.json();
+                    if (r.ok) {
+                        showToast("✅ " + j.message);
+                        alert(
+                            "Cek inbox email kamu untuk verifikasi. Setelah klik link verifikasi, kembali ke halaman ini.");
+                    } else {
+                        showToast("❌ " + (j.message || "Registrasi gagal"), false);
+                    }
+                } catch {
+                    showToast("❌ Server error", false);
+                }
+            });
+
+            resendBtn?.addEventListener("click", async () => {
+                const email = prompt("Masukkan email kamu:");
+                if (!email) return;
+                try {
+                    const r = await fetch("/auth/resend", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            email
+                        })
+                    });
+                    const j = await r.json();
+                    showToast((r.ok ? "✅ " : "❌ ") + (j.message || ""));
+                } catch {
+                    showToast("❌ Server error", false);
+                }
+            });
+        </script> -->
+        <!-- end script handle toggle and register -->
+
+<!-- satrt script handle toggle and register -->
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const loginCard = document.getElementById("loginCard");
+    const registerCard = document.getElementById("registerCard");
+    const showRegisterBtn = document.getElementById("showRegisterBtn");
+    const hideRegisterBtn = document.getElementById("hideRegisterBtn");
+    const registerForm = document.getElementById("registerForm");
+    const resendBtn = document.getElementById("resendBtn");
+
+    function showRegister() {
+      loginCard.classList.add("d-none");
+      registerCard.classList.remove("d-none");
+    }
+    function showLogin() {
+      registerCard.classList.add("d-none");
+      loginCard.classList.remove("d-none");
+    }
+
+    showRegisterBtn?.addEventListener("click", (e) => { e.preventDefault(); showRegister(); });
+    hideRegisterBtn?.addEventListener("click", (e) => { e.preventDefault(); showLogin(); });
+
+    // submit register (tetap sama)
+    registerForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        const r = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: document.getElementById("regName").value,
+            email: document.getElementById("regEmail").value,
+            password: document.getElementById("regPassword").value
+          })
+        });
+        const j = await r.json();
+        if (r.ok) {
+          (window.showToast ? showToast("✅ " + j.message) : alert(j.message));
+          alert("Cek inbox email kamu untuk verifikasi. Setelah klik link verifikasi, kembali ke halaman ini.");
+          // kalau mau otomatis balik ke login:
+          // showLogin();
+          // document.getElementById("username").value = document.getElementById("regEmail").value;
+        } else {
+          (window.showToast ? showToast("❌ " + (j.message || "Registrasi gagal"), false) : alert(j.message || "Registrasi gagal"));
+        }
+      } catch {
+        (window.showToast ? showToast("❌ Server error", false) : alert("Server error"));
+      }
+    });
+
+    // resend verifikasi (tetap sama)
+    resendBtn?.addEventListener("click", async () => {
+      const email = prompt("Masukkan email kamu:");
+      if (!email) return;
+      try {
+        const r = await fetch("/auth/resend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        const j = await r.json();
+        (window.showToast ? showToast((r.ok ? "✅ " : "❌ ") + (j.message || "")) : alert(j.message || (r.ok ? "Terkirim" : "Gagal")));
+      } catch {
+        (window.showToast ? showToast("❌ Server error", false) : alert("Server error"));
+      }
+    });
+  });
+</script>
+<!-- end script handle toggle and register -->
+        
+
+
+        
+
+
+        <!-- <div class="login-page col-6">
             <div class="card p-4 shadow-sm" style="max-width:400px;width:100%">
                 <h4 class="mb-3 text-center">🔑 Login PIMORA</h4>
                 <form id="loginForm">
@@ -217,7 +388,8 @@
                     <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
             </div>
-        </div>
+        </div> -->
+
     </div>
 
     <div id="app" class="d-none">
@@ -241,8 +413,8 @@
                 aria-label="Tambah Folder"><i class="bi bi-folder-plus"></i><span>Add Folder</span></a>
             <a href="#" onclick="showSection('gallery', event)" title="Galeri" aria-label="Galeri"><i
                     class="bi bi-collection-play"></i><span>Galeri</span></a>
-            <a href="#" onclick="showSection('status', event)" title="Status Server" aria-label="Status Server"><i
-                    class="bi bi-activity"></i><span>Server Status</span></a>
+            <a href="#" onclick="showSection('status', event)" title="Status Server"
+                aria-label="Status Server"><i class="bi bi-activity"></i><span>Server Status</span></a>
             <a href="#" onclick="showSection('profile', event)" title="Profil" aria-label="Profil"><i
                     class="bi bi-person-circle"></i><span>Profil</span></a>
             <a href="#" onclick="logout()" title="Logout" aria-label="Logout"><i

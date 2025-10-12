@@ -1,3 +1,8 @@
+const crypto = require("crypto");
+const cookieParser = require("cookie-parser");
+const nodemailer = require("nodemailer");
+const mysql = require("mysql2/promise");
+require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
@@ -12,10 +17,46 @@ const os = require("os");
 const SECRET_KEY = process.env.SECRET_KEY || "your-strong-secret-key-12345";
 const SESSION_SECRET = process.env.SESSION_SECRET || "your-other-strong-secret";
 
-const app = express();
+const app = express()
+app.use(cookieParser());
 const PORT = 8000;
 
 const cors = require("cors");
+
+// === MySQL & Email Transport (Auth) ===
+const APP_BASE_URL = process.env.APP_BASE_URL || "http://localhost:8000";
+
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || "localhost",
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASS || "",
+  database: process.env.DB_NAME || "pimora",
+  waitForConnections: true,
+  connectionLimit: 10,
+});
+
+const mailer = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "587", 10),
+  secure: false,
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+});
+
+async function sendVerificationEmail(to, token) {
+  const verifyUrl = `${APP_BASE_URL}/auth/verify?token=${token}`;
+  await mailer.sendMail({
+    to,
+    from: process.env.SMTP_FROM || process.env.SMTP_USER,
+    subject: "Verifikasi Email PIMORA",
+    html: `
+      <p>Hai,</p>
+      <p>Silakan verifikasi email kamu dengan klik link berikut:</p>
+      <p><a href="${verifyUrl}">${verifyUrl}</a></p>
+      <p>Link berlaku 24 jam.</p>
+    `,
+  });
+}
+
 
 app.use(cors({
   origin: 'http://localhost:8000',  // Ganti dengan URL frontend Anda
@@ -84,41 +125,35 @@ function requireAuth(req, res, next) {
   return authJWT(req, res, next);
 }
 
+
 // ===== Routes Login/Logout =====
-// app.post("/login", async (req, res) => {
-//   const { username, password } = req.body;
-//   try {
-//     const user = JSON.parse(fs.readFileSync(userFile, "utf-8"));
-//      console.log("User from file:", user); // Tambahkan log untuk mengecek apakah data benar
-//     if (username === user.username && (await bcrypt.compare(password, user.password))) {
-//       console.log("Login sukses, sesi diset:", req.session.user); // Log sesi
-//       req.session.user = { username };
-//       return res.json({ message: "Login sukses", user: username });
-//     }
-//     return res.status(401).json({ message: "Username/password salah" });
-//   } catch (err) {
-//     console.error(err);  // Log error jika terjadi masalah
-//     return res.status(500).json({ message: "Terjadi kesalahan server saat login" });
-//   }
-// });
 app.post("/login", async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password } = req.body; // username = email
+  const email = (username || "").trim().toLowerCase();
+  if (!email || !password) {
+    return res.status(400).json({ message: "Lengkapi email & password" });
+  }
+
   try {
-    const user = JSON.parse(fs.readFileSync(userFile, "utf-8"));
-    console.log("Password yang dimasukkan:", password);  // Log password yang diterima
-    console.log("Password dari file:", user.password);  // Log password yang disimpan
-
-    // Periksa apakah password yang dimasukkan cocok dengan hash yang ada di file
-    const match = await bcrypt.compare(password, user.password);
-    console.log("Password cocok:", match);  // Log hasil perbandingan
-
-    if (username === user.username && match) {
-      req.session.user = { username };
-      return res.json({ message: "Login sukses", user: username });
+    const [rows] = await pool.query(
+      "SELECT id, email, name, password_hash, is_verified FROM users WHERE email = ? LIMIT 1",
+      [email]
+    );
+    if (!rows.length) {
+      return res.status(401).json({ message: "Email/Password salah" });
     }
-    return res.status(401).json({ message: "Username/password salah" });
-  } catch (err) {
-    console.error(err);
+
+    const user = rows[0];
+    const ok = await bcrypt.compare(password, user.password_hash);
+    if (!ok) return res.status(401).json({ message: "Email/Password salah" });
+    if (!user.is_verified) {
+      return res.status(403).json({ message: "Email belum diverifikasi. Cek inbox kamu." });
+    }
+
+    req.session.user = { id: user.id, email: user.email, name: user.name || user.email };
+    return res.json({ message: "Login sukses", user: { email: user.email, name: user.name } });
+  } catch (e) {
+    console.error(e);
     return res.status(500).json({ message: "Terjadi kesalahan server saat login" });
   }
 });
@@ -995,3 +1030,86 @@ setupUserFile()
   .catch((err) => {
     console.error("Gagal memulai server:", err);
   });
+
+// REGISTER
+app.post("/register", async (req, res) => {
+  const { email, password, name } = req.body;
+  const cleanEmail = (email || "").trim().toLowerCase();
+  if (!cleanEmail || !password) {
+    return res.status(400).json({ message: "Email & password wajib diisi" });
+  }
+  try {
+    const [exists] = await pool.query("SELECT id FROM users WHERE email = ? LIMIT 1", [cleanEmail]);
+    if (exists.length) {
+      return res.status(409).json({ message: "Email sudah terdaftar" });
+    }
+    const hash = await bcrypt.hash(password, 12);
+    const [ins] = await pool.query(
+      "INSERT INTO users (email, name, password_hash, is_verified) VALUES (?, ?, ?, 0)",
+      [cleanEmail, name || null, hash]
+    );
+    const userId = ins.insertId;
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 jam
+    await pool.query(
+      "INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [userId, token, expiresAt]
+    );
+    await sendVerificationEmail(cleanEmail, token);
+    return res.json({ message: "Registrasi berhasil. Cek email untuk verifikasi." });
+  } catch (e) {
+    console.error(e);
+    return res.status(500).json({ message: "Terjadi kesalahan server saat registrasi" });
+  }
+});
+
+// EMAIL VERIFY
+app.get("/auth/verify", async (req, res) => {
+  const { token } = req.query;
+  if (!token) return res.status(400).send("Token tidak ada.");
+  try {
+    const [rows] = await pool.query(
+      "SELECT id, user_id, expires_at, used FROM email_verifications WHERE token = ? LIMIT 1",
+      [token]
+    );
+    if (!rows.length) return res.status(400).send("Token tidak valid.");
+    const ev = rows[0];
+    if (ev.used) return res.status(400).send("Token sudah dipakai.");
+    if (new Date(ev.expires_at) < new Date()) return res.status(400).send("Token telah kedaluwarsa.");
+
+    await pool.query("UPDATE users SET is_verified = 1 WHERE id = ?", [ev.user_id]);
+    await pool.query("UPDATE email_verifications SET used = 1 WHERE id = ?", [ev.id]);
+
+    const [[u]] = await pool.query("SELECT id, email, name FROM users WHERE id = ?", [ev.user_id]);
+    req.session.user = { id: u.id, email: u.email, name: u.name || u.email };
+
+    res.send("Email berhasil diverifikasi. Kamu bisa menutup tab ini dan kembali ke aplikasi.");
+  } catch (e) {
+    console.error(e);
+    res.status(500).send("Terjadi kesalahan server.");
+  }
+});
+
+// RESEND VERIFY
+app.post("/auth/resend", async (req, res) => {
+  const { email } = req.body;
+  const cleanEmail = (email || "").trim().toLowerCase();
+  if (!cleanEmail) return res.status(400).json({ message: "Email wajib diisi" });
+  try {
+    const [[user]] = await pool.query("SELECT id, is_verified FROM users WHERE email = ?", [cleanEmail]);
+    if (!user) return res.status(404).json({ message: "Email belum terdaftar" });
+    if (user.is_verified) return res.status(400).json({ message: "Email sudah terverifikasi" });
+
+    const token = crypto.randomBytes(32).toString("hex");
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await pool.query(
+      "INSERT INTO email_verifications (user_id, token, expires_at) VALUES (?, ?, ?)",
+      [user.id, token, expiresAt]
+    );
+    await sendVerificationEmail(cleanEmail, token);
+    res.json({ message: "Link verifikasi baru sudah dikirim." });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ message: "Terjadi kesalahan server." });
+  }
+});

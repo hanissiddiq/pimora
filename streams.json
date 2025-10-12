@@ -90,5 +90,47 @@
     "endTime": 1759592041331,
     "stopType": "manual",
     "stopDuration": 1800
+  },
+  {
+    "id": 1760234140995,
+    "name": "ncs music live stream",
+    "platform": "YouTube",
+    "url": "rtmp://a.rtmp.youtube.com/live2",
+    "key": "63zt-79kz-chjh-rg6f-fbpq",
+    "schedule": "2025-10-12T02:00:00.000Z",
+    "scheduleInput": null,
+    "duration": 60,
+    "folder": "ncs",
+    "channel": "-",
+    "status": "Failed",
+    "message": "Gagal: Semua audio gagal dikonversi"
+  },
+  {
+    "id": 1760234269935,
+    "name": "kurosaki",
+    "platform": "YouTube",
+    "url": "rtmp://a.rtmp.youtube.com/live2",
+    "key": "63zt-79kz-chjh-rg6f-fbpq",
+    "schedule": "2025-10-12T02:00:00.000Z",
+    "scheduleInput": null,
+    "duration": 30,
+    "folder": "ncs",
+    "channel": "kurokun",
+    "status": "Failed",
+    "message": "Gagal: Semua audio gagal dikonversi"
+  },
+  {
+    "id": 1760265509260,
+    "name": "aseeeek",
+    "platform": "YouTube",
+    "url": "rtmp://a.rtmp.youtube.com/live2",
+    "key": "63zt-79kz-chjh-rg6f-fbpq",
+    "schedule": "2025-10-12T10:45:00.000Z",
+    "scheduleInput": null,
+    "duration": 20,
+    "folder": "aselole",
+    "channel": "asssooeeeekkkk",
+    "status": "Failed",
+    "message": "Gagal: Semua audio gagal dikonversi"
   }
 ]
