@@ -66,8 +66,8 @@
     "duration": 14,
     "folder": "AYAT_1000_DINAR_1",
     "channel": "imam test",
-    "status": "Stopped",
-    "message": "Stream dihentikan manual",
+    "status": "Failed",
+    "message": "Gagal: Semua audio gagal dikonversi",
     "startTime": "2025-10-04T15:00:31.305Z",
     "endTime": 1759590871305,
     "stopType": "manual",
@@ -130,6 +130,20 @@
     "duration": 20,
     "folder": "aselole",
     "channel": "asssooeeeekkkk",
+    "status": "Failed",
+    "message": "Gagal: Semua audio gagal dikonversi"
+  },
+  {
+    "id": 1782722821998,
+    "name": "Stream_Lamborgini",
+    "platform": "YouTube",
+    "url": "rtmp://a.rtmp.youtube.com/live2",
+    "key": "bgz6-25kp-6yuc-8a7b-c3g8",
+    "schedule": "2026-06-29T08:55:00.000Z",
+    "scheduleInput": null,
+    "duration": 15,
+    "folder": "LamboView",
+    "channel": "https://www.youtube.com/@HanisSiddiq",
     "status": "Failed",
     "message": "Gagal: Semua audio gagal dikonversi"
   }
