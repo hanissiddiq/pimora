@@ -470,7 +470,25 @@ pm2 list
 user: hanissiddiq10@gmail.com
 pass: 12345
 ---
+==================================
+<img width="1592" height="815" alt="Image" src="https://github.com/user-attachments/assets/e537c130-ae46-4535-8f8b-d4ac62b2b6fc" />
 
+<img width="1587" height="824" alt="Image" src="https://github.com/user-attachments/assets/f2a4a973-e18a-49c5-973c-3fa02c9d38ef" />
+
+<img width="1588" height="816" alt="Image" src="https://github.com/user-attachments/assets/fce2d1dc-7675-4b51-9840-367d3b5fc2ff" />
+
+<img width="1597" height="812" alt="Image" src="https://github.com/user-attachments/assets/082fbe40-8df4-491a-b7ac-8917fe77915d" />
+
+<img width="1587" height="821" alt="Image" src="https://github.com/user-attachments/assets/19f34cf7-82f7-442c-8f83-ff0ed6d2513e" />
+
+<img width="1599" height="818" alt="Image" src="https://github.com/user-attachments/assets/7219a6d4-4f4d-4d09-8a93-a20b9fb7d69e" />
+
+<img width="1582" height="806" alt="Image" src="https://github.com/user-attachments/assets/76f03f88-0e55-4136-9928-1b7b35ea8d40" />
+
+<img width="1583" height="808" alt="Image" src="https://github.com/user-attachments/assets/1d2e1df1-d948-4329-b9ca-b3785cf724d4" />
+
+<img width="1590" height="752" alt="Image" src="https://github.com/user-attachments/assets/3784cd67-babd-45cd-a7cb-37d0006287ac" />
+==================================
 # Lisensi
 
 Project ini digunakan untuk kebutuhan pengembangan Sistem Automation Streaming (PIMORA).
