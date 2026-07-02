@@ -1,0 +1,1 @@
+file '/var/www/pimora/temp/1000dinar_fixed.aac'

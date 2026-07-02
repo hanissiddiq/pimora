@@ -254,7 +254,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 200 * 1024 * 1024 },
+  limits: { fileSize: 500 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ["video/mp4", "audio/mpeg", "audio/mp4", "audio/x-m4a"];
     if (!allowed.includes(file.mimetype)) {
@@ -352,7 +352,20 @@ function getDuration(filePath) {
 }
 
 // ===== Folder API =====
-app.post("/upload/folder", requireAuth, upload.any(), (req, res) => {
+// app.post("/upload/folder", requireAuth, upload.any(), (req, res) => {
+  app.post("/upload/folder",
+    (req, res, next) => {
+        console.log("=== REQUEST MASUK ===");
+        next();
+    },
+    requireAuth,
+    upload.any(),
+    (req, res) => {
+
+        console.log("=== SETELAH MULTER ===");
+        console.log(req.body);
+        console.log(req.files?.length);
+        
   const folder = sanitizeName(req.body.folder || "default");
   if (folder.includes("..") || folder.includes("/") || folder.includes("\\")) {
     return res.status(400).json({ message: "❌ Nama folder tidak valid" });
@@ -1020,12 +1033,12 @@ app.use((err, req, res, next) => {
 // ===== Run Server =====
 setupUserFile()
   .then(() => {
-    // app.listen(PORT, "0.0.0.0", () => {
-    //   console.log(`✅ Server jalan di http://0.0.0.0:${PORT}`);
-    // });
-    app.listen(PORT, "localhost", () => {
-      console.log(`✅ Server jalan di http://localhost:${PORT}`);
-    });
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server jalan di http://0.0.0.0:${PORT}`);
+   });
+    //app.listen(PORT, "localhost", () => {
+     // console.log(`✅ Server jalan di http://localhost:${PORT}`);
+   // });
   })
   .catch((err) => {
     console.error("Gagal memulai server:", err);

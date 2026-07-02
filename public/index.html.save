@@ -433,7 +433,9 @@
                         class="bi bi-speedometer2"></i><span>Dashboard</span></a>
                 <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('addStream', event)"><i
                         class="bi bi-plus-circle"></i><span>Add Stream</span></a>
-                <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('addFolder', event)"><i
+                <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('
+
+addFolder', event)"><i
                         class="bi bi-folder-plus"></i><span>Add Folder</span></a>
                 <a href="#" class="d-block mb-2" onclick="closeMobileMenu();showSection('gallery', event)"><i
                         class="bi bi-collection-play"></i><span>Galeri</span></a>
@@ -1181,10 +1183,6 @@
                 const fd = new FormData();
                 fd.append("folder", fn);
                 fd.append("file", item.file);
-
-
-console.log(item.file.name);
-console.log(item.file.size);
 
                 const r = await fetch("/upload/folder", {
                     method: "POST",
